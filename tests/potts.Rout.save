@@ -1,0 +1,88 @@
+
+R version 2.9.1 (2009-06-26)
+Copyright (C) 2009 The R Foundation for Statistical Computing
+ISBN 3-900051-07-0
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> 
+> library(potts)
+> 
+> set.seed(42)
+> 
+> ncolor <- as.integer(4)
+> beta <- log(1 + sqrt(ncolor))
+> theta <- c(rep(0, ncolor), beta)
+> 
+> nrow <- 100
+> ncol <- 100
+> x <- matrix(1, nrow = nrow, ncol = ncol)
+> foo <- packPotts(x, ncolor)
+> 
+> out <- potts(foo, theta, nbatch = 10)
+> out$batch
+      [,1] [,2] [,3] [,4]  [,5]
+ [1,]   43   48   53 9856 19519
+ [2,]   85 9716   94  105 19045
+ [3,] 9609  129  136  126 18704
+ [4,]  148 9514  147  191 18395
+ [5,]  192 9437  180  191 18228
+ [6,] 9382  227  176  215 18036
+ [7,]  234  250 9317  199 17918
+ [8,]  235  220  258 9287 17842
+ [9,] 9179  283  263  275 17617
+[10,]  288  337 9118  257 17475
+> 
+> out <- potts(foo, theta, nbatch = 10, boundary = "free")
+> out$batch
+      [,1] [,2] [,3] [,4]  [,5]
+ [1,] 9821   62   70   47 19254
+ [2,]  113  133 9660   94 18805
+ [3,] 9578  153  143  126 18527
+ [4,] 9401  189  212  198 18065
+ [5,] 9293  316  188  203 17952
+ [6,]  199 9237  326  238 17821
+ [7,]  288  330 9135  247 17553
+ [8,] 9089  304  308  299 17289
+ [9,]  308 9050  293  349 17140
+[10,]  382  345  385 8888 16924
+> 
+> out <- potts(foo, theta, nbatch = 10, boundary = "condition")
+> out$batch
+      [,1] [,2] [,3] [,4]  [,5]
+ [1,] 9460   42   63   39 18908
+ [2,] 9335   96   90   83 18502
+ [3,] 9201  113  163  127 18100
+ [4,] 9089  176  183  156 17798
+ [5,] 8978  176  225  225 17535
+ [6,] 8869  236  242  257 17222
+ [7,] 8849  254  289  212 17215
+ [8,] 8841  286  234  243 17177
+ [9,] 8741  299  295  269 16978
+[10,] 8664  319  328  293 16802
+> 
+> save.seed <- .Random.seed
+> out <- potts(foo, theta, nbatch = 20, blen = 10, nspac = 5)
+> niter <- out$nbatch * out$blen * out$nspac
+> .Random.seed <- save.seed
+> out.too <- potts(foo, theta, nbatch = niter)
+> 
+> my.batch <- out.too$batch[1:niter %% out$nspac == 0, ]
+> my.batch <- array(as.vector(my.batch),
++     dim = c(out$blen, out$nbatch, ncolor + 1))
+> my.batch <- apply(my.batch, c(2, 3), mean)
+> all.equal(my.batch, out$batch)
+[1] TRUE
+> 
+> 
+> 

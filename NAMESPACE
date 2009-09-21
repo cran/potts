@@ -1,0 +1,12 @@
+
+useDynLib(potts)
+
+export(packPotts)
+export(inspectPotts)
+export(unpackPotts)
+export(potts)
+
+S3method(potts, potts)
+S3method(potts, raw)
+S3method(image, raw)
+

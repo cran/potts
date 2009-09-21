@@ -1,0 +1,25 @@
+
+0.2-1  Fixed bug where pp and psum were int instead of double in potts.c
+
+0.3    Changed niter argument to three: nbatch, blen, nspac
+       Now works just like metrop in the mcmc package
+
+0.3-1  Fixed bug where |A| in |A| * theta_color was incorrect (cc instead of gg)
+          Bad bug.  Simulations all wrong before.
+
+0.3-2  Fixed bug where no error was reported for theta-star < 0, for
+           which Swendsen-Wang algorithm doesn't work.
+       Also introduced debug argument to potts, and "expose the innards"
+           validation (tests/debug.R).  So far only boundary == "torus"
+           mode validated, but looks o. k. except for ...
+       One weird open bug.  The saving of .Random.seed as out$initial.seed
+           doesn't work right.  Two runs are not the same as continuation
+           of one run.
+
+0.3-3  Fixed the "weird" bug.  .Random.seed must be assigned in the
+           R global environment to have effect, see use of assign function
+           in mcmc/R/potts.R
+
+0.3-4  Finished validation.  Now all boundary specifications validated.
+           Also greatly enlarged details section of help page for potts
+           function.
