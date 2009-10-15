@@ -41,7 +41,6 @@ static inline void packed_set2(unsigned int idx_row, unsigned int idx_col,
 #define R_assert(e) ((void) 0)
 #endif /* ASSERT */
 
-
 static unsigned int packed_get1(unsigned int idx)
 {
     register unsigned int idx_mod = idx >> log2pixelsperbyte;
@@ -196,6 +195,7 @@ void unpackPotts(unsigned char *raw, int *lenrawin, int *ncolorin,
 
 #include <math.h>
 #include <R.h>
+#include <Rinternals.h>
 
 #define BDRY_TORUS 1
 #define BDRY_FREE 2
@@ -205,6 +205,166 @@ static void equiv_init(unsigned int *ff, int nvert);
 static void equiv_update(unsigned int *ff, int p0, int q0);
 static void equiv_finish(unsigned int *ff, int nvert);
 static void order_alpha(double *alpha, int ncolor, int *aorder);
+
+static SEXP out_func = NULL;
+static SEXP out_envir = NULL;
+
+/* yes, this is a kludge, but too painful to rewrite everything now */
+SEXP outfun_setup(SEXP func, SEXP envir)
+{
+    if (! isFunction(func))
+        error("outfun_setup: argument func must be function");
+    if (! isEnvironment(envir))
+        error("outfun_setup: argument envir must be environment");
+    out_func = func;
+    out_envir = envir;
+    return R_NilValue;
+}
+
+void outfun_shutdown(void)
+{
+    out_func = NULL;
+    out_envir = NULL;
+}
+
+static SEXP outfun_do(double *tt, int len_tt)
+{
+    SEXP call, result, tstat, foo;
+
+    if (! out_func)
+        error("outfun: not setup yet");
+    PROTECT(tstat = allocVector(REALSXP, len_tt));
+    for (int i = 0; i < len_tt; i++)
+        REAL(tstat)[i] = tt[i];
+    PROTECT(call = lang2(out_func, tstat));
+    PROTECT(result = eval(call, out_envir));
+    if (! isVectorAtomic(result))
+        error("outfun: result of function call must be atomic");
+    if (! isNumeric(result))
+        error("outfun: result of function call must be numeric");
+    PROTECT(foo = coerceVector(result, REALSXP));
+    int len_foo = LENGTH(foo);
+    for (int i = 0; i < len_foo; i++)
+        if (! R_finite(REAL(foo)[i]))
+            error("outfun returned vector with non-finite element");
+    UNPROTECT(4);
+    return foo;
+}
+
+static int outfun_len(double *tt, int len_tt)
+{
+    return LENGTH(outfun_do(tt, len_tt));
+}
+
+static void outfun_val(double *tt, int len_tt, double *buff, int len_buff)
+{
+    SEXP foo;
+
+    PROTECT(foo = outfun_do(tt, len_tt));
+    if (LENGTH(foo) != len_buff)
+        error("outfun return vector length changed from initial");
+    for (int i = 0; i < len_buff; i++)
+        buff[i] = REAL(foo)[i];
+    UNPROTECT(1);
+}
+
+static void compute_canonical(unsigned char *xx, double *tt, int len_tt,
+    int code)
+{
+    int ncolor = len_tt - 1;
+    int nvert = nrow * ncol;
+
+    for (int k = 0; k < ncolor; k++)
+        tt[k] = 0;
+    int tstar = 0;
+
+    if (code == BDRY_TORUS) {
+
+        for (int i = 0; i < nvert; i++)
+            tt[xx[i]]++;
+
+        for (int i = 0; i < nrow; i++)
+            for (int j = 0; j < ncol; j++) {
+                int idx1 = i + nrow * j;
+                int idx2 = ((i + 1) % nrow) + nrow * j;
+                if (xx[idx1] == xx[idx2])
+                    tstar++;
+            }
+
+        for (int i = 0; i < nrow; i++)
+            for (int j = 0; j < ncol; j++) {
+                int idx1 = i + nrow * j;
+                int idx2 = i + nrow * ((j + 1) % ncol);
+                if (xx[idx1] == xx[idx2])
+                    tstar++;
+            }
+
+    } else if (code == BDRY_FREE) {
+
+        for (int i = 0; i < nvert; i++)
+            tt[xx[i]]++;
+
+        for (int i = 0; i < nrow - 1; i++)
+            for (int j = 0; j < ncol; j++) {
+                int idx1 = i + nrow * j;
+                int idx2 = (i + 1) + nrow * j;
+                if (xx[idx1] == xx[idx2])
+                    tstar++;
+            }
+
+        for (int i = 0; i < nrow; i++)
+            for (int j = 0; j < ncol - 1; j++) {
+                int idx1 = i + nrow * j;
+                int idx2 = i + nrow * (j + 1);
+                if (xx[idx1] == xx[idx2])
+                    tstar++;
+            }
+
+    } else if (code == BDRY_CONDITION) {
+
+        for (int i = 1; i < nrow - 1; i++)
+            for (int j = 1; j < ncol - 1; j++)
+                tt[xx[i + nrow * j]]++;
+
+        for (int i = 0; i < nrow - 1; i++)
+            for (int j = 1; j < ncol - 1; j++) {
+                int idx1 = i + nrow * j;
+                int idx2 = (i + 1) + nrow * j;
+                if (xx[idx1] == xx[idx2])
+                    tstar++;
+            }
+
+        for (int i = 1; i < nrow - 1; i++)
+            for (int j = 0; j < ncol - 1; j++) {
+                int idx1 = i + nrow * j;
+                int idx2 = i + nrow * (j + 1);
+                if (xx[idx1] == xx[idx2])
+                    tstar++;
+            }
+
+    } else /* Can't happen */ {
+        error("impossible value of code");
+    }
+
+    tt[ncolor] = tstar;
+}
+
+void outfun_len_init(unsigned char *raw, int *codein, int *nout)
+{
+    int code = codein[0];
+    int nrow_raw, ncol_raw, ncolor_raw;
+    inspectPotts(raw, &ncolor_raw, &nrow_raw, &ncol_raw);
+    int nvert = nrow_raw * ncol_raw;
+    int nparm = ncolor_raw + 1;
+
+    unsigned char *xx = (unsigned char *) R_alloc(nvert, sizeof(unsigned char));
+    double *tt = (double *) R_alloc(nparm, sizeof(double));
+
+    for (int i = 0; i < nvert; i++)
+        xx[i] = packed_get1(i);
+    compute_canonical(xx, tt, nparm, code);
+    nout[0] = outfun_len(tt, nparm);
+}
 
 void potts(unsigned char *raw, double *theta, int *nbatchin, int *blenin,
     int *nspacin, int *codein, double *batch, int *debugin, int *pstate,
@@ -263,11 +423,17 @@ void potts(unsigned char *raw, double *theta, int *nbatchin, int *blenin,
         if (alpha_max < alpha[k])
             alpha_max = alpha[k];
 
-    // need buffers for batch means and canonical statistic vector
+    // need buffers for batch means, canonical statistic vector, and outfun
 
-    int nout = ncolor + 1;
+    int nparm = ncolor + 1;
+    double *tt = (double *) R_alloc(nparm, sizeof(double));
+    compute_canonical(xx, tt, nparm, code);
+
+    int nout = nparm;
+    if (out_func)
+        nout = outfun_len(tt, nparm);
     double *batch_buff = (double *) R_alloc(nout, sizeof(double));
-    double *tt = (double *) R_alloc(nout, sizeof(double));
+    double *outfun_buff = (double *) R_alloc(nout, sizeof(double));
 
     int niter = nbatch * blen * nspac;
 
@@ -488,84 +654,18 @@ void potts(unsigned char *raw, double *theta, int *nbatchin, int *blenin,
 
         /* compute canonical statistics */
 
-        for (int k = 0; k < ncolor; k++)
-            tt[k] = 0;
-        int tstar = 0;
-
-        if (code == BDRY_TORUS) {
-
-            for (int i = 0; i < nvert; i++)
-                tt[xx[i]]++;
-
-            for (int i = 0; i < nrow; i++)
-                for (int j = 0; j < ncol; j++) {
-                    int idx1 = i + nrow * j;
-                    int idx2 = ((i + 1) % nrow) + nrow * j;
-                    if (xx[idx1] == xx[idx2])
-                        tstar++;
-                }
-
-            for (int i = 0; i < nrow; i++)
-                for (int j = 0; j < ncol; j++) {
-                    int idx1 = i + nrow * j;
-                    int idx2 = i + nrow * ((j + 1) % ncol);
-                    if (xx[idx1] == xx[idx2])
-                        tstar++;
-                }
-
-        } else if (code == BDRY_FREE) {
-
-            for (int i = 0; i < nvert; i++)
-                tt[xx[i]]++;
-
-            for (int i = 0; i < nrow - 1; i++)
-                for (int j = 0; j < ncol; j++) {
-                    int idx1 = i + nrow * j;
-                    int idx2 = (i + 1) + nrow * j;
-                    if (xx[idx1] == xx[idx2])
-                        tstar++;
-                }
-
-            for (int i = 0; i < nrow; i++)
-                for (int j = 0; j < ncol - 1; j++) {
-                    int idx1 = i + nrow * j;
-                    int idx2 = i + nrow * (j + 1);
-                    if (xx[idx1] == xx[idx2])
-                        tstar++;
-                }
-
-        } else if (code == BDRY_CONDITION) {
-
-            for (int i = 1; i < nrow - 1; i++)
-                for (int j = 1; j < ncol - 1; j++)
-                    tt[xx[i + nrow * j]]++;
-
-            for (int i = 0; i < nrow - 1; i++)
-                for (int j = 1; j < ncol - 1; j++) {
-                    int idx1 = i + nrow * j;
-                    int idx2 = (i + 1) + nrow * j;
-                    if (xx[idx1] == xx[idx2])
-                        tstar++;
-                }
-
-            for (int i = 1; i < nrow - 1; i++)
-                for (int j = 0; j < ncol - 1; j++) {
-                    int idx1 = i + nrow * j;
-                    int idx2 = i + nrow * (j + 1);
-                    if (xx[idx1] == xx[idx2])
-                        tstar++;
-                }
-
-        } else /* Can't happen */ {
-            error("impossible value of code");
-        }
-
-        tt[ncolor] = tstar;
+        compute_canonical(xx, tt, nparm, code);
 
     } /* end of inner loop (one iteration) */
 
-    for (int i = 0; i < nout; i++)
-        batch_buff[i] += tt[i];
+    if (out_func) {
+        outfun_val(tt, nparm, outfun_buff, nout);
+        for (int i = 0; i < nout; i++)
+            batch_buff[i] += outfun_buff[i];
+    } else {
+        for (int i = 0; i < nparm; i++)
+            batch_buff[i] += tt[i];
+    }
 
     } /* end of middle loop (one batch) */
 
@@ -578,7 +678,6 @@ void potts(unsigned char *raw, double *theta, int *nbatchin, int *blenin,
 
     for (int i = 0; i < nvert; i++)
         packed_set1(i, xx[i]);
-
 }
 
 static void equiv_init(unsigned int *ff, int nvert)

@@ -30,15 +30,21 @@ static R_NativeArgStyle potts_styles[15] =
     R_ARG_OUT, R_ARG_IN, R_ARG_OUT, R_ARG_OUT, R_ARG_OUT, R_ARG_OUT,
     R_ARG_OUT, R_ARG_OUT, R_ARG_OUT};
 
+static R_NativePrimitiveArgType out_types[3] = {RAWSXP, INTSXP, INTSXP};
+static R_NativeArgStyle out_styles[15] = {R_ARG_IN, R_ARG_IN, R_ARG_OUT};
+
 static R_CMethodDef cMethods[] = {
     {"packPotts", (DL_FUNC) &packPotts, 6, pack_types, pack_styles},
     {"inspectPotts", (DL_FUNC) &inspectPotts, 4, inspect_types, inspect_styles},
     {"unpackPotts", (DL_FUNC) &unpackPotts, 6, unpack_types, unpack_styles},
     {"potts", (DL_FUNC) &potts, 15, potts_types, potts_styles},
+    {"outfun_shutdown", (DL_FUNC) &outfun_shutdown, 0, NULL, NULL},
+    {"outfun_len_init", (DL_FUNC) &outfun_len_init, 3, out_types, out_styles},
     {NULL, NULL, 0, NULL, NULL}
 };
  
 static R_CallMethodDef callMethods[]  = {
+    {"outfun_setup", (DL_FUNC) &outfun_setup, 2},
     {NULL, NULL, 0}
 };
 

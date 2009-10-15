@@ -13,3 +13,11 @@ void potts(unsigned char *raw, double *theta, int *nbatchin, int *blenin,
     int *hstate, int *vstate, int *patch, double *hunif, double *vunif,
     double *punif);
 
+void outfun_shutdown(void);
+
+void outfun_len_init(unsigned char *raw, int *codein, int *nout);
+
+#include <Rinternals.h>
+
+SEXP outfun_setup(SEXP func, SEXP envir);
+

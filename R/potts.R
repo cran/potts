@@ -1,24 +1,29 @@
 
 potts <- function(obj, param, nbatch, blen = 1, nspac = 1,
-    boundary = c("torus", "free", "condition"), debug = FALSE)
+    boundary = c("torus", "free", "condition"), debug = FALSE,
+    outfun = NULL, ...)
 UseMethod("potts")
 
 potts.potts <- function(obj, param, nbatch, blen = 1, nspac = 1,
-    boundary = c("torus", "free", "condition"), debug = FALSE)
+    boundary = c("torus", "free", "condition"), debug = FALSE,
+    outfun = NULL, ...)
 {
     boundary <- match.arg(boundary)
     if (missing(param)) param <- obj$param
     if (missing(nbatch)) nbatch <- obj$nbatch
     if (missing(blen)) blen <- obj$blen
     if (missing(nspac)) nspac <- obj$nspac
+    if (missing(boundary)) boundary <- obj$boundary
     if (missing(debug)) debug <- obj$debug
+    if (missing(outfun)) outfun <- obj$outfun
     initial <- obj$final
     assign(".Random.seed", obj$final.seed, .GlobalEnv)
-    potts.raw(initial, param, nbatch, blen, nspac, boundary, debug)
+    potts.raw(initial, param, nbatch, blen, nspac, boundary, debug, outfun, ...)
 }
 
 potts.raw <- function(obj, param, nbatch, blen = 1, nspac = 1,
-    boundary = c("torus", "free", "condition"), debug = FALSE)
+    boundary = c("torus", "free", "condition"), debug = FALSE,
+    outfun = NULL, ...)
 {
     boundary <- match.arg(boundary)
 
@@ -76,15 +81,29 @@ potts.raw <- function(obj, param, nbatch, blen = 1, nspac = 1,
         punif <- matrix(as.double(-1), 1, 1)
     }
 
+    if (is.null(outfun)) {
+        .C("outfun_shutdown", PACKAGE = "potts")
+        nout <- length(param)
+    } else {
+        func2 <- function(tt) outfun(tt, ...)
+        env2 <- environment(fun = func2)
+        .Call("outfun_setup", func2, env2)
+        nout <- .C("outfun_len_init", x = obj,
+            code = as.integer(boundary.code), nout = integer(1),
+            PACKAGE = "potts")$nout
+    }
+
     out.time <- system.time(
     out <- .C("potts", final = obj, param = as.double(param),
         nbatch = nbatch, blen = blen, nspac = nspac,
         code = as.integer(boundary.code),
-        batch = matrix(as.double(0), nrow = length(param), ncol = nbatch),
+        batch = matrix(as.double(0), nrow = as.integer(nout),
+            ncol = as.integer(nbatch)),
         debug = debug, pstate = pstate, hstate = hstate, vstate = vstate,
         patch = patch, hunif = hunif, vunif = vunif, punif = punif,
         PACKAGE = "potts")
     )
+    .C("outfun_shutdown", PACKAGE = "potts")
 
     if (debug) {
         return(structure(list(initial.seed = saveseed,

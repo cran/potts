@@ -8,7 +8,8 @@
 }
 \usage{
 potts(obj, param, nbatch, blen = 1, nspac = 1,
-    boundary = c("torus", "free", "condition"), debug = FALSE)
+    boundary = c("torus", "free", "condition"), debug = FALSE,
+    outfun = NULL, ...)
 }
 \arguments{
   \item{obj}{an R vector of class \code{"raw"} that encodes a realization
@@ -25,6 +26,12 @@ potts(obj, param, nbatch, blen = 1, nspac = 1,
   \item{boundary}{type of boundary conditions.
       The value of this argument can be abbreviated.}
   \item{debug}{return additional debugging information.}
+  \item{outfun}{controls the output.  If a function, then the batch means
+      of \code{outfun(tt, \dots)} are returned.  The argument \code{tt}
+      is the canonical statistic of the Potts model having the same length
+      as the argument \code{param} of this function.  If \code{NULL}, the
+      batch means of the canonical statistic are returned.}
+  \item{...}{additional arguments for \code{outfun}.}
 }
 \details{
 Runs a Swendsen-Wang algorithm producing a Markov chain with equilibrium
@@ -88,10 +95,11 @@ to \code{(nrow - 2) * (ncol - 1) + (nrow - 1) * (ncol - 2)}.
   \item{blen}{the length of batches.}
   \item{nspac}{the spacing of iterations that contribute to batches.}
   \item{boundary}{the argument \code{boundary}.}
-  \item{batch}{an \code{nbatch} by \code{ncolor + 1} matrix, where \code{ncolor}
-      is the number of colors of the potts model; each row is the batch means
-      for the canonical statistic vector for one batch of Markov chain
-      iterations.}
+  \item{batch}{an \code{nbatch} by \code{nout} matrix, where \code{nout} is
+      the length of the result returned by \code{outfun} or \code{length(param)}
+      if \code{outfun == NULL}; each row is the batch means for the result
+      of \code{outfun} or the canonical statistic vector for one batch
+      of Markov chain iterations.}
 }
 \examples{
 ncolor <- as.integer(4)
