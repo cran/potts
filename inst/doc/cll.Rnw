@@ -1,0 +1,198 @@
+\documentclass[11pt]{article}
+
+\usepackage{indentfirst}
+\usepackage{url}
+\usepackage[utf8]{inputenc}
+
+\newcommand{\inner}[1]{\langle #1 \rangle}
+
+\RequirePackage{amsmath}
+
+% \VignetteIndexEntry{CLL Crash Course}
+
+\begin{document}
+
+\title{CLL Crash Course}
+\author{Leif Johnson}
+\maketitle
+
+\section{Notation}
+\begin{itemize}
+  \item window -- a group of pixels in the image.  A window is usually
+    denoted with the letter $A$.
+  \item $\mathcal{A}$ -- A collection of windows.
+  \item $C$ -- set of colors in the image.  $n_{color} = n_c = \mid C
+    \mid$.  In practice $C = \{ 1,\dots,n_c \}$.
+  \item $C^A$ -- set of possible arrangements of colors in window
+    $A$.  What this set is depends on the size and shape of $A$, and
+    the number of colors in $C$.  We frequently enumerate the elements
+    of $C^A$ as $c_1,\dots,c_{|C|^{|A|}}$ or $y_1,\dots,y_{|C|^{|A|}}$.
+    $c_1$ is taken to be the ``base case''.
+  \item $\theta$ -- the parameter for the model.  
+  \item $t(x)$ -- the canonical statistic for the model,
+    $t_{c_1}(x),\dots,t_{c_{|C|}}(x)$ are the number of pixels that
+    match the corresponding colors.  $t_*(x)$ is the number of pixel
+    neighbor pairs that have the same color.
+\end{itemize}
+
+\section{CLL Basics}
+Composite Likelihood (CL) is a method of approximating the
+Likelihood, used when maximizing the Likelihood would be unfeasible
+using normal methods.  Instead we calculate the Maximum Composite
+Likelhood Estimator (MCLE), which approaches the MLE in the limit.  We
+do all of the maximizing on the log scale.  
+
+In the potts setting, the image is first divided up into a collection
+of windows, $\mathcal{A}$.  The Likelihood is approximated by
+multiplying the conditional PMFs for each window together.  This is
+the Composite Likelihood.  For each $A \in \mathcal{A}$, $C^A$ is the
+set of possible colors to fill window $A$.  Then for $A \in \mathcal{A}$  the
+conditional PMF for $A$ is
+\begin{align*}
+f_A(x_{A} \mid Rest) &= \frac{ f(x_{A} \cup Rest) }{\sum_{y \in C^A}
+  f(y \cup Rest) }
+\\
+&=
+\frac{e^{\inner{t(x_A \cup x_{L \setminus A}), \theta}}}{
+  \sum_{y \in C^A} e^{\inner{t(y \cup x_{L \setminus A}), \theta}}}.
+\end{align*}
+
+We calculate the MCLE by maximizing the Composite Log Likelihood
+(CLL), given by
+\begin{equation}\label{eq:cll}
+\log_{\mathcal{A}}(\theta) = \sum_{A \in \mathcal{A}} \log(f_A(x_{A}
+\mid Rest))
+\end{equation}
+
+\section{Identifiability}
+It should be noted that the model is not identifiable, as we have the constraint
+\[
+\sum_{c\in C} t_c(x) = n_{row} * n_{col}
+\]
+We solve this issue by assuming the parameter for the first color to
+be zero, and dropping the appropriate statistic whenever we are doing
+calculations.
+\section{Realizing a model}
+<<genimage>>=
+library(potts)
+nrow <- 32
+ncol <- 32
+ncolor <- 4
+theta.true <- rep(0, ncolor+1)
+theta.true[ncolor+1] <- log(1 + sqrt(ncolor))
+x <- matrix(sample(ncolor, nrow*ncol, replace=TRUE), nrow=nrow,
+            ncol=ncol)
+out <- potts(packPotts(x, ncolor), theta.true, nbatch=1000, blen=1)
+x <- unpackPotts(out$final)
+@
+
+The realized image for this run is given in figure \ref{fig:potts}.
+
+\begin{figure}[ht]
+\begin{center}
+<<label=potts-fig,fig=TRUE,echo=FALSE>>=
+image(x)
+@
+\end{center}
+\caption{Realized Potts Image}
+\label{fig:potts}
+\end{figure}
+
+
+If we are going to estimate some MCLE's, we need to calculate the
+canonical statistics for all of the windows.  The functions {\it
+  composite.ll} and {\it gr.composite.ll} calculate \eqref{eq:cll} and
+the gradient of \eqref{eq:cll} respectively.  They each take three
+arguments
+\begin{itemize}
+  \item {\it theta} -- the value of $\theta$ to evaluate.
+  \item {\it t\_stat} -- the value of the canonical statistic for the
+    entire image
+  \item {\it t\_cache} -- three dimensional array.  Index 1 goes across
+    elements of $\mathcal{A}$.  Index 2 goes across the elements of
+    $C^A$.  Hence {\it t\_cache[i,j,]} contains $t(y_j \cup Rest)$ for
+    the $i^{th}$ element of $\mathcal{A}$.
+\end{itemize}
+
+So before we can calculate the CLL, we need to calculate canonical staistics.
+
+\section{Calculating Canonical Statistics}
+To calculate \eqref{eq:cll} we need to calculate the value of $t(y
+\cup Rest)$ for all $y \in C^A$ for all $A \in \mathcal{A}$.  Before
+we calculate any, we will load the library and generate an image to
+work on.
+
+Once we have the image, we can calculate $t(x)$ using the function,
+{\it calc\_t}.
+
+<<calct>>=
+t_stat <- calc_t(x, ncolor)
+t_stat
+@ 
+
+Next we need to calculate {\it t\_cache}, however, this calculation
+depends on what collection of windows we are going to use.  For this
+Vignette, we are going to use two collections
+\begin{enumerate}
+\item The collection of all singletons.  This corresponds to Besag's
+  Pseudolikelihood, so we will actually be calculating the MPLE.
+\item The collection consisting of non-overlapping windows of
+  horizontal pixel pairs.
+\end{enumerate}
+
+The next code chunk shows how to calculate the {\it t\_cache} for
+these collections, and to see the value of $t(y \cup Rest)$ across the
+first window.
+<<calctcache>>=
+t_cache_mple <- generate_t_cache(x, ncolor, t_stat, nrow*ncol, 1, 
+                                  singleton)
+t_cache_mple[[1]]
+t_cache_two <- generate_t_cache(x, ncolor, t_stat, nrow*ncol/2, 2, 
+                                twopixel.nonoverlap)
+t_cache_two[[1]]
+@ 
+
+\section{Calculating the CLL}
+Once we have calculated the canonical statistics, we can use them to
+evaluate and/or optimize the CLL.  We can first compute the value of
+the CLL at the known parameter value.
+<<calccll>>=
+composite.ll(theta.true[-1], t_stat, t_cache_mple)
+gr.composite.ll(theta.true[-1], t_stat, t_cache_mple)
+
+composite.ll(theta.true[-1], t_stat, t_cache_two)
+gr.composite.ll(theta.true[-1], t_stat, t_cache_two)
+@ 
+
+Or we could optimize it using the usual techniques.
+<<optimcll>>=
+theta.initial <- 1:ncolor
+optim.mple <- optim(theta.initial, composite.ll, gr=gr.composite.ll,
+                    t_stat, t_cache_mple, method="BFGS", 
+                    control=list(fnscale=-1))
+optim.mple$par
+
+optim.two <- optim(theta.initial, composite.ll, gr=gr.composite.ll,
+                   t_stat, t_cache_two, method="BFGS", 
+                   control=list(fnscale=-1))
+optim.two$par
+
+theta.true
+@ 
+
+If your system has the {\it multicore} installed, you can take
+advantage by passing mclapply in as the fapply argument to the CLL
+family of functions.
+\begin{verbatim}
+library(multicore)
+t_stat <- calc_t(x, ncolor)
+t_cache_mple <- generate_t_cache(x, ncolor, t_stat, nrow*ncol, 1, 
+                                  singleton, mclapply)
+theta.initial <- 1:ncolor
+optim.mple <- optim(theta.initial, composite.ll, gr=gr.composite.ll,
+                    t_stat, t_cache_mple, mclapply, method="BFGS", 
+                    control=list(fnscale=-1))
+optim.mple$par
+\end{verbatim}
+
+\end{document}
