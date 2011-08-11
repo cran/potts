@@ -1,7 +1,8 @@
 
-R version 2.9.2 (2009-08-24)
-Copyright (C) 2009 The R Foundation for Statistical Computing
+R version 2.13.1 (2011-07-08)
+Copyright (C) 2011 The R Foundation for Statistical Computing
 ISBN 3-900051-07-0
+Platform: x86_64-pc-linux-gnu (64-bit)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -190,7 +191,7 @@ Type 'q()' to quit R.
 	One-sample Kolmogorov-Smirnov test
 
 data:  u 
-D = 0.008, p-value = 0.0752
+D = 0.008, p-value = 0.07519
 alternative hypothesis: two-sided 
 
 > 

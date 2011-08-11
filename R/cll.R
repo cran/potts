@@ -29,10 +29,9 @@ gr.composite.ll <- function(theta, t_stat, t_cache=NULL, fapply=lapply) {
     stop("!cache_t not implemented yet in composite.ll!")
   } else {
     tot_list <- fapply(t_cache, function(arr) {
-      tmp <- rowSums(apply(arr, 1, function(r) {
-        rtmp <- exp( (r - arr[1,]) %*% theta )
-        c((r - arr[1,]) * rtmp, rtmp)
-      }))
+      tmp <- t( t(arr) - arr[1,] )
+      rtmp <- as.vector( exp( tmp %*% theta ) )
+      t_stat[-1] - arr[1,] - colSums( tmp * rtmp / sum(rtmp) )
     })
     colSums(matrix(unlist(tot_list), ncol=length(theta), byrow=TRUE))
   }
