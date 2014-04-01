@@ -14,7 +14,7 @@ gr.composite.ll(theta, t_stat, t_cache)
 optim.mple <- optim(theta, composite.ll, gr=gr.composite.ll,
                     t_stat, t_cache, method="BFGS",
                     control=list(fnscale=-1))
-optim.mple$par # should be "close" to c(0,1)
+# optim.mple$par # should be "close" to c(0,1)
 all.equal(optim.mple$par, 0:1)
 
 set.seed(42)
