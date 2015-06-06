@@ -15,7 +15,7 @@
 \alias{sixteenpixel.nonoverlap}
 \title{Cache calculated Canonical Statistics for Potts Models.}
 \description{
-  Variety of functions to support cacheing of calculated canonical
+  Variety of functions to support caching of calculated canonical
   statistics for Potts Models.  There is some attempt at being 'smart'
   with when to regenerate the statistics.
 }
@@ -98,7 +98,7 @@ sixteenpixel.nonoverlap(x, ncolor, a, idx, gridcache=NULL)
   \code{composite.ll} or \code{gr.composite.ll}.
 
   All of the calculations using \code{\link{composite.ll}} and these
-  cacheing functions need one of the color components to be dropped for
+  caching functions need one of the color components to be dropped for
   the model to be identifiable.  For simplicity, the first color is
   dropped by \code{generate_t_cache}.  In computing the composite log
   likelihood for a Potts model with \code{ncolor} colors, we are

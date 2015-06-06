@@ -4,7 +4,7 @@
 \alias{calc_t_full}
 \title{Calculate Canonical Statistic for Potts Model}
 \description{
-  Caclulate the canonical statistic 't' for a realization of a Potts
+  Calculate the canonical statistic 't' for a realization of a Potts
   Model
 }
 \usage{

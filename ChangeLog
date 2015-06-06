@@ -26,4 +26,10 @@
 
 0.4    Added outfun
 
+0.5    Added composite likelihood stuff
+
 0.5-2  moved vignette to vignettes directory
+
+0.5-3  As per instructions from CRAN, redid *.Rout.save files in
+           tests directory that used ks.test because print.htest
+           changed in core R

@@ -24,7 +24,7 @@ gr.composite.ll(theta, t_stat, t_cache=NULL, fapply=lapply)
     \eqn{t}{\code{t}} with window \eqn{A_i}{A(i)} replaced by the
     \eqn{j^{th}}{j-th} element of \eqn{C^A}{C^A}.}
 	       
-  \item{fapply}{function.  Expected to function as \code{lapply} does.  Usefull
+  \item{fapply}{function.  Expected to function as \code{lapply} does.  Useful
     for enabling parallel processing.  E.g. use the \code{mclapply} function
     from the \pkg{multicore} package.}
 
