@@ -33,3 +33,6 @@
 0.5-3  As per instructions from CRAN, redid *.Rout.save files in
            tests directory that used ks.test because print.htest
            changed in core R
+
+0.5-4 Explicitly import stuff from stats and graphics, required by R-3.3.0
+

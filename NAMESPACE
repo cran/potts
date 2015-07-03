@@ -30,3 +30,6 @@ export(calc_t_innergrid)
 export(calc_t)
 export(composite.ll)
 export(gr.composite.ll)
+
+importFrom(graphics, image)
+importFrom(stats, runif)
