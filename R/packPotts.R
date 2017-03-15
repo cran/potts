@@ -9,23 +9,22 @@ packPotts <- function(x, ncolor) {
     bitsperpixel <- ceiling(log2(ncolor))
     pixelsperbyte <- floor(8 / bitsperpixel)
     lenraw <- ceiling(length(x) / pixelsperbyte) + 10
-    .C("packPotts", x = x, nrow = nrow(x), ncol = ncol(x), ncolor = ncolor,
-        lenraw = as.integer(lenraw), raw = raw(lenraw), PACKAGE = "potts")$raw
+    .C(C_packPotts, x = x, nrow = nrow(x), ncol = ncol(x), ncolor = ncolor,
+        lenraw = as.integer(lenraw), raw = raw(lenraw))$raw
 }
 
 inspectPotts <- function(raw) {
     stopifnot(is.raw(raw))
-    foo <- .C("inspectPotts", raw = raw,
-        ncolor = integer(1), nrow = integer(1), ncol = integer(1),
-        PACKAGE = "potts")
+    foo <- .C(C_inspectPotts, raw = raw,
+        ncolor = integer(1), nrow = integer(1), ncol = integer(1))
     return(list(ncolor = foo$ncolor, nrow = foo$nrow, ncol = foo$ncol))
 }
 
 unpackPotts <- function(raw) {
     stopifnot(is.raw(raw))
     foo <- inspectPotts(raw)
-    .C("unpackPotts", raw = raw, lenraw = length(raw),
+    .C(C_unpackPotts, raw = raw, lenraw = length(raw),
         ncolor = foo$ncolor, nrow = foo$nrow, ncol = foo$ncol,
-        x = matrix(as.integer(0), foo$nrow, foo$ncol), PACKAGE = "potts")$x
+        x = matrix(as.integer(0), foo$nrow, foo$ncol))$x
 }
 

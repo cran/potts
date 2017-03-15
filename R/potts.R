@@ -82,28 +82,26 @@ potts.raw <- function(obj, param, nbatch, blen = 1, nspac = 1,
     }
 
     if (is.null(outfun)) {
-        .C("outfun_shutdown", PACKAGE = "potts")
+        .C(C_outfun_shutdown)
         nout <- length(param)
     } else {
-        func2 <- function(tt) outfun(tt, ...)
+        func2 <- cmpfun(function(tt) cmpfun(outfun)(tt, ...))
         env2 <- environment(fun = func2)
-        .Call("outfun_setup", func2, env2)
-        nout <- .C("outfun_len_init", x = obj,
-            code = as.integer(boundary.code), nout = integer(1),
-            PACKAGE = "potts")$nout
+        .Call(C_outfun_setup, func2, env2)
+        nout <- .C(C_outfun_len_init, x = obj,
+            code = as.integer(boundary.code), nout = integer(1))$nout
     }
 
     out.time <- system.time(
-    out <- .C("potts", final = obj, param = as.double(param),
+    out <- .C(C_potts, final = obj, param = as.double(param),
         nbatch = nbatch, blen = blen, nspac = nspac,
         code = as.integer(boundary.code),
         batch = matrix(as.double(0), nrow = as.integer(nout),
             ncol = as.integer(nbatch)),
         debug = debug, pstate = pstate, hstate = hstate, vstate = vstate,
-        patch = patch, hunif = hunif, vunif = vunif, punif = punif,
-        PACKAGE = "potts")
+        patch = patch, hunif = hunif, vunif = vunif, punif = punif)
     )
-    .C("outfun_shutdown", PACKAGE = "potts")
+    .C(C_outfun_shutdown)
 
     if (debug) {
         return(structure(list(initial.seed = saveseed,

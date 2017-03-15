@@ -36,3 +36,5 @@
 
 0.5-4 Explicitly import stuff from stats and graphics, required by R-3.3.0
 
+0.5-5 Modernize registration of native routines as per Sections 5.4 and 6.15
+      of Writing R Extensions

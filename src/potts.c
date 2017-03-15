@@ -28,10 +28,12 @@ static unsigned char *x = 0;
 
 static unsigned int packed_get1(unsigned int idx);
 static void packed_set1(unsigned int idx, unsigned int val);
+#ifdef OOPSIE /* clang says unused */
 static inline unsigned int packed_get2(unsigned int idx_row,
     unsigned int idx_col);
 static inline void packed_set2(unsigned int idx_row, unsigned int idx_col,
     unsigned int val);
+#endif /* OOPSIE */
 
 /* ripped off from src/main/saveload.c in R core distribution */
 #ifdef ASSERT
@@ -83,8 +85,8 @@ void packPotts(int *myx, int *nrowin, int *ncolin, int *ncolorin,
 {
     nrow = nrowin[0];
     ncol = ncolin[0];
-    int ncolor = ncolorin[0];
-    int lenraw = lenrawin[0];
+    unsigned int ncolor = ncolorin[0];
+    unsigned int lenraw = lenrawin[0];
 
     if (nrow < 1)
         error("nrow < 1");
@@ -133,7 +135,7 @@ void packPotts(int *myx, int *nrowin, int *ncolin, int *ncolorin,
     printf("log2pixelsperbyte = %4d\n", log2pixelsperbyte);
 #endif /* BLATHER */
 
-    for (int i = 0; i < nrow * ncol; i++)
+    for (unsigned int i = 0; i < nrow * ncol; i++)
         packed_set1(i, myx[i] - 1);
 }
 
@@ -204,7 +206,9 @@ void unpackPotts(unsigned char *raw, int *lenrawin, int *ncolorin,
 static void equiv_init(unsigned int *ff, int nvert);
 static void equiv_update(unsigned int *ff, int p0, int q0);
 static void equiv_finish(unsigned int *ff, int nvert);
+#ifdef OOPSIE /* gcc says unused */
 static void order_alpha(double *alpha, int ncolor, int *aorder);
+#endif /* OOPSIE */
 
 static SEXP out_func = NULL;
 static SEXP out_envir = NULL;
@@ -283,16 +287,16 @@ static void compute_canonical(unsigned char *xx, double *tt, int len_tt,
         for (int i = 0; i < nvert; i++)
             tt[xx[i]]++;
 
-        for (int i = 0; i < nrow; i++)
-            for (int j = 0; j < ncol; j++) {
+        for (unsigned int i = 0; i < nrow; i++)
+            for (unsigned int j = 0; j < ncol; j++) {
                 int idx1 = i + nrow * j;
                 int idx2 = ((i + 1) % nrow) + nrow * j;
                 if (xx[idx1] == xx[idx2])
                     tstar++;
             }
 
-        for (int i = 0; i < nrow; i++)
-            for (int j = 0; j < ncol; j++) {
+        for (unsigned int i = 0; i < nrow; i++)
+            for (unsigned int j = 0; j < ncol; j++) {
                 int idx1 = i + nrow * j;
                 int idx2 = i + nrow * ((j + 1) % ncol);
                 if (xx[idx1] == xx[idx2])
@@ -304,16 +308,16 @@ static void compute_canonical(unsigned char *xx, double *tt, int len_tt,
         for (int i = 0; i < nvert; i++)
             tt[xx[i]]++;
 
-        for (int i = 0; i < nrow - 1; i++)
-            for (int j = 0; j < ncol; j++) {
+        for (unsigned int i = 0; i < nrow - 1; i++)
+            for (unsigned int j = 0; j < ncol; j++) {
                 int idx1 = i + nrow * j;
                 int idx2 = (i + 1) + nrow * j;
                 if (xx[idx1] == xx[idx2])
                     tstar++;
             }
 
-        for (int i = 0; i < nrow; i++)
-            for (int j = 0; j < ncol - 1; j++) {
+        for (unsigned int i = 0; i < nrow; i++)
+            for (unsigned int j = 0; j < ncol - 1; j++) {
                 int idx1 = i + nrow * j;
                 int idx2 = i + nrow * (j + 1);
                 if (xx[idx1] == xx[idx2])
@@ -322,20 +326,20 @@ static void compute_canonical(unsigned char *xx, double *tt, int len_tt,
 
     } else if (code == BDRY_CONDITION) {
 
-        for (int i = 1; i < nrow - 1; i++)
-            for (int j = 1; j < ncol - 1; j++)
+        for (unsigned int i = 1; i < nrow - 1; i++)
+            for (unsigned int j = 1; j < ncol - 1; j++)
                 tt[xx[i + nrow * j]]++;
 
-        for (int i = 0; i < nrow - 1; i++)
-            for (int j = 1; j < ncol - 1; j++) {
+        for (unsigned int i = 0; i < nrow - 1; i++)
+            for (unsigned int j = 1; j < ncol - 1; j++) {
                 int idx1 = i + nrow * j;
                 int idx2 = (i + 1) + nrow * j;
                 if (xx[idx1] == xx[idx2])
                     tstar++;
             }
 
-        for (int i = 1; i < nrow - 1; i++)
-            for (int j = 0; j < ncol - 1; j++) {
+        for (unsigned int i = 1; i < nrow - 1; i++)
+            for (unsigned int j = 0; j < ncol - 1; j++) {
                 int idx1 = i + nrow * j;
                 int idx2 = i + nrow * (j + 1);
                 if (xx[idx1] == xx[idx2])
@@ -404,7 +408,9 @@ void potts(unsigned char *raw, double *theta, int *nbatchin, int *blenin,
     unsigned char *xx = (unsigned char *) R_alloc(nvert, sizeof(unsigned char));
     unsigned char *ss = (unsigned char *) R_alloc(nvert, sizeof(unsigned char));
     unsigned char *cc = (unsigned char *) R_alloc(nvert, sizeof(unsigned char));
+#ifdef OOPSIE /* gcc says unused */
     int *aorder = (int *) R_alloc(ncolor, sizeof(int));
+#endif /* OOPSIE */
     double *pp = (double *) R_alloc(ncolor, sizeof(double));
     double alpha_max;
     int alpha_is_zero;
@@ -447,8 +453,8 @@ void potts(unsigned char *raw, double *theta, int *nbatchin, int *blenin,
     for (int ispac = 0; ispac < nspac; ispac++, iiter++) {
 
         if (is_debug)
-            for (int i = 0; i < nrow; i++)
-                for (int j = 0; j < ncol; j++)
+            for (unsigned int i = 0; i < nrow; i++)
+                for (unsigned int j = 0; j < ncol; j++)
                     pstate[iiter + niter * (i + nrow * j)] =
                         xx[i + nrow * j] + 1;
 
@@ -458,8 +464,8 @@ void potts(unsigned char *raw, double *theta, int *nbatchin, int *blenin,
 
         if (code == BDRY_TORUS) {
 
-            for (int i = 0; i < nrow; i++)
-                for (int j = 0; j < ncol; j++) {
+            for (unsigned int i = 0; i < nrow; i++)
+                for (unsigned int j = 0; j < ncol; j++) {
                     int idx1 = i + nrow * j;
                     int idx2 = ((i + 1) % nrow) + nrow * j;
                     R_assert(0 <= idx1 && idx1 < nvert);
@@ -476,8 +482,8 @@ void potts(unsigned char *raw, double *theta, int *nbatchin, int *blenin,
                     }
                 }
 
-            for (int i = 0; i < nrow; i++)
-                for (int j = 0; j < ncol; j++) {
+            for (unsigned int i = 0; i < nrow; i++)
+                for (unsigned int j = 0; j < ncol; j++) {
                     int idx1 = i + nrow * j;
                     int idx2 = i + nrow * ((j + 1) % ncol);
                     R_assert(0 <= idx1 && idx1 < nvert);
@@ -496,8 +502,8 @@ void potts(unsigned char *raw, double *theta, int *nbatchin, int *blenin,
 
         } else if (code == BDRY_FREE) {
 
-            for (int i = 0; i < nrow - 1; i++)
-                for (int j = 0; j < ncol; j++) {
+            for (unsigned int i = 0; i < nrow - 1; i++)
+                for (unsigned int j = 0; j < ncol; j++) {
                     int idx1 = i + nrow * j;
                     int idx2 = (i + 1) + nrow * j;
                     R_assert(0 <= idx1 && idx1 < nvert);
@@ -514,8 +520,8 @@ void potts(unsigned char *raw, double *theta, int *nbatchin, int *blenin,
                     }
                 }
 
-            for (int i = 0; i < nrow; i++)
-                for (int j = 0; j < ncol - 1; j++) {
+            for (unsigned int i = 0; i < nrow; i++)
+                for (unsigned int j = 0; j < ncol - 1; j++) {
                     int idx1 = i + nrow * j;
                     int idx2 = i + nrow * (j + 1);
                     R_assert(0 <= idx1 && idx1 < nvert);
@@ -534,8 +540,8 @@ void potts(unsigned char *raw, double *theta, int *nbatchin, int *blenin,
 
         } else if (code == BDRY_CONDITION) {
 
-            for (int i = 0; i < nrow - 1; i++)
-                for (int j = 1; j < ncol - 1; j++) {
+            for (unsigned int i = 0; i < nrow - 1; i++)
+                for (unsigned int j = 1; j < ncol - 1; j++) {
                     int idx1 = i + nrow * j;
                     int idx2 = (i + 1) + nrow * j;
                     R_assert(0 <= idx1 && idx1 < nvert);
@@ -552,8 +558,8 @@ void potts(unsigned char *raw, double *theta, int *nbatchin, int *blenin,
                     }
                 }
 
-            for (int i = 1; i < nrow - 1; i++)
-                for (int j = 0; j < ncol - 1; j++) {
+            for (unsigned int i = 1; i < nrow - 1; i++)
+                for (unsigned int j = 0; j < ncol - 1; j++) {
                     int idx1 = i + nrow * j;
                     int idx2 = i + nrow * (j + 1);
                     R_assert(0 <= idx1 && idx1 < nvert);
@@ -579,8 +585,8 @@ void potts(unsigned char *raw, double *theta, int *nbatchin, int *blenin,
         /* Now vertices are in same patch if and only if have same ff[j] */
 
         if (is_debug)
-            for (int i = 0; i < nrow; i++)
-                for (int j = 0; j < ncol; j++)
+            for (unsigned int i = 0; i < nrow; i++)
+                for (unsigned int j = 0; j < ncol; j++)
                     patch[iiter + niter * (i + nrow * j)] =
                         ff[i + nrow * j] + 1;
 
@@ -599,7 +605,7 @@ void potts(unsigned char *raw, double *theta, int *nbatchin, int *blenin,
             ss[i] = 0;
         if (code == BDRY_CONDITION) {
 
-            for (int i = 0; i < nrow; i++) {
+            for (unsigned int i = 0; i < nrow; i++) {
                 int idx1 = i + nrow * 0;
                 int idx2 = i + nrow * (ncol - 1);
                 R_assert(0 <= idx1 && idx1 < nvert);
@@ -607,7 +613,7 @@ void potts(unsigned char *raw, double *theta, int *nbatchin, int *blenin,
                 ss[ff[idx1]] = 1;
                 ss[ff[idx2]] = 1;
             }
-            for (int j = 0; j < ncol; j++) {
+            for (unsigned int j = 0; j < ncol; j++) {
                 int idx1 = 0 + nrow * j;
                 int idx2 = (nrow - 1) + nrow * j;
                 R_assert(0 <= idx1 && idx1 < nvert);
@@ -711,6 +717,7 @@ static void equiv_finish(unsigned int *ff, int nvert)
         ff[i] = ff[ff[i]];
 }
 
+#ifdef OOPSIE /* gcc says unused */
 static void order_alpha(double *alpha, int ncolor, int *aorder)
 {
     for (int i = 0; i < ncolor; i++)
@@ -729,4 +736,5 @@ static void order_alpha(double *alpha, int ncolor, int *aorder)
             aorder[imin] = tmp;
     }
 }
+#endif /* OOPSIE */
 

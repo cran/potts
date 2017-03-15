@@ -1,5 +1,5 @@
 
-useDynLib(potts)
+useDynLib(potts, .registration = TRUE, .fixes = "C_")
 
 export(packPotts)
 export(inspectPotts)
@@ -33,3 +33,4 @@ export(gr.composite.ll)
 
 importFrom(graphics, image)
 importFrom(stats, runif)
+importFrom(compiler, cmpfun)
