@@ -1,5 +1,5 @@
-97946936329651b51e6bc9dd5d9214cc *ChangeLog
-78603de3770edaf31f755ce803774961 *DESCRIPTION
+47d31813c3d5d77480596d8d9b07dd6c *ChangeLog
+3dcbc7b59e25d84cad51aba31acf67de *DESCRIPTION
 c00a4381366ab6e3a559fbe630fd5596 *NAMESPACE
 bb980badccfcd53036a2f9672903b401 *NEWS
 bc86fb31d603587d95208ec261cbbaeb *R/cachet.R
@@ -7,11 +7,11 @@ f347f650511607237f4bfa3bb90c76eb *R/calct.R
 b902d0d28fab1b00031bd49d30892aa8 *R/cll.R
 bb4e5a36593be3fe4f72ce4ff7197e07 *R/image.raw.R
 a163b77be5c4acf4d24e592c9c183568 *R/packPotts.R
-41cf4e3718e2b5bb30de7f04a73ec2a2 *R/potts.R
+31d3154d6f99094d929f8750eb2944c0 *R/potts.R
 3603e28e2ca8c88b7a766776bac5890a *build/vignette.rds
 df649a5334e1107562b720234fd7f1fb *inst/doc/cll.R
 54b5c3347346db72fd0faf6ba9be81fa *inst/doc/cll.Rnw
-5512d8d1252ecba1d94a7cae0056f90b *inst/doc/cll.pdf
+e11b626ba15db9e3d6ed5d7532051c06 *inst/doc/cll.pdf
 633e9bf64f47cf3f0d738d2712209d3d *man/cachet.Rd
 ebb871764439ae3103afdf568e606cc3 *man/calct.Rd
 621fada9c27016dcb5a451ac405b7680 *man/cll.Rd

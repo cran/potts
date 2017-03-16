@@ -38,3 +38,8 @@
 
 0.5-5 Modernize registration of native routines as per Sections 5.4 and 6.15
       of Writing R Extensions
+
+0.5-6 Put DOI in DESCRIPTION
+
+0.5-7 Fix horrible bug (cmpfun inside function called many times)
+
