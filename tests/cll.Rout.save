@@ -1,7 +1,7 @@
 
-R version 3.0.3 (2014-03-06) -- "Warm Puppy"
-Copyright (C) 2014 The R Foundation for Statistical Computing
-Platform: x86_64-unknown-linux-gnu (64-bit)
+R version 3.5.2 (2018-12-20) -- "Eggshell Igloo"
+Copyright (C) 2018 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -15,6 +15,9 @@ Type 'demo()' for some demos, 'help()' for on-line help, or
 'help.start()' for an HTML browser interface to help.
 Type 'q()' to quit R.
 
+> 
+> # needed because of the change in R function "sample" in R-devel
+> suppressWarnings(RNGversion("3.5.2"))
 > 
 > library(potts)
 > 
@@ -48,7 +51,7 @@ Type 'q()' to quit R.
 > ncol <- 32
 > 
 > # create potts image
-> x <- matrix(sample(ncolor, nrow*ncol, replace=TRUE), 
+> x <- matrix(sample(ncolor, nrow*ncol, replace=TRUE),
 +             nrow = nrow, ncol = ncol)
 > out <- potts(packPotts(x, ncolor), theta, nbatch=1000, blen=1)
 > x <- unpackPotts(out$final)
@@ -69,4 +72,4 @@ Type 'q()' to quit R.
 > 
 > proc.time()
    user  system elapsed 
-  3.738   0.029   3.786 
+  2.475   0.004   2.472 

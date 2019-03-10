@@ -43,3 +43,4 @@
 
 0.5-7 Fix horrible bug (cmpfun inside function called many times)
 
+0.5-8 Eliminate calls to cmpfun.  Just rely on jit.

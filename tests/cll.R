@@ -1,4 +1,7 @@
 
+# needed because of the change in R function "sample" in R-devel
+suppressWarnings(RNGversion("3.5.2"))
+
 library(potts)
 
 # simple functionality test
@@ -26,7 +29,7 @@ nrow <- 32
 ncol <- 32
 
 # create potts image
-x <- matrix(sample(ncolor, nrow*ncol, replace=TRUE), 
+x <- matrix(sample(ncolor, nrow*ncol, replace=TRUE),
             nrow = nrow, ncol = ncol)
 out <- potts(packPotts(x, ncolor), theta, nbatch=1000, blen=1)
 x <- unpackPotts(out$final)

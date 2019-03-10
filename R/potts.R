@@ -85,9 +85,7 @@ potts.raw <- function(obj, param, nbatch, blen = 1, nspac = 1,
         .C(C_outfun_shutdown)
         nout <- length(param)
     } else {
-        outfun <- cmpfun(outfun)
         func2 <- function(tt) outfun(tt, ...)
-        func2 <- cmpfun(func2)
         env2 <- environment(fun = func2)
         .Call(C_outfun_setup, func2, env2)
         nout <- .C(C_outfun_len_init, x = obj,

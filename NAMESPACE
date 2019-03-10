@@ -33,4 +33,3 @@ export(gr.composite.ll)
 
 importFrom(graphics, image)
 importFrom(stats, runif)
-importFrom(compiler, cmpfun)
