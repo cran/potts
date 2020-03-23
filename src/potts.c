@@ -198,6 +198,7 @@ void unpackPotts(unsigned char *raw, int *lenrawin, int *ncolorin,
 #include <math.h>
 #include <R.h>
 #include <Rinternals.h>
+#include <R_ext/Utils.h>
 
 #define BDRY_TORUS 1
 #define BDRY_FREE 2
@@ -661,6 +662,8 @@ void potts(unsigned char *raw, double *theta, int *nbatchin, int *blenin,
         /* compute canonical statistics */
 
         compute_canonical(xx, tt, nparm, code);
+
+        R_CheckUserInterrupt();
 
     } /* end of inner loop (one iteration) */
 

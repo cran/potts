@@ -1,6 +1,6 @@
 Package: potts
-Version: 0.5-8
-Date: 2019-03-09
+Version: 0.5-9
+Date: 2020-03-22
 Title: Markov Chain Monte Carlo for Potts Models
 Author: Charles J. Geyer <charlie@stat.umn.edu> and Leif Johnson
     <ltjohnson@google.com>
@@ -20,6 +20,6 @@ Description: Do Markov chain Monte Carlo (MCMC) simulation of Potts models
 License: GPL (>= 2)
 URL: http://www.stat.umn.edu/geyer/mcmc/
 NeedsCompilation: yes
-Packaged: 2019-03-10 04:51:23 UTC; geyer
+Packaged: 2020-03-23 10:28:36 UTC; geyer
 Repository: CRAN
-Date/Publication: 2019-03-10 07:10:03 UTC
+Date/Publication: 2020-03-23 11:20:02 UTC
