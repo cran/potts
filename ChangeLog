@@ -46,3 +46,5 @@
 0.5-8 Eliminate calls to cmpfun.  Just rely on jit.
 
 0.5-9 Add calls to R_CheckUserInterrupt(); in MCMC main loop
+
+0.5-11 Change \textbackslash to \setminus

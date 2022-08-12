@@ -61,7 +61,7 @@ calc_t(x, ncolor, grid=NULL, i=NULL, j=NULL)
   window, but this includes the number of matching pairs from the
   replaced window to it's neighbors.  E.g. if \code{X} is the full
   image, and \eqn{A_a}{A(a)} is the value of some window in the image
-  and we want to know the value of \eqn{t(y \cup X \textbackslash
+  and we want to know the value of \eqn{t(y \cup X \setminus
   A_a)}{\code{t( y union X \\ A(a))}} this would be \code{calc_t_full(X,
   ncolor) + calc_t_innergrid(X, ncolor, y, i, j) - calc_t_innergrid(X,
   ncolor, A(a), i, j)}

@@ -123,7 +123,7 @@ sixteenpixel.nonoverlap(x, ncolor, a, idx, gridcache=NULL)
   \code{fourpixel}, \code{fourpixel.nonoverlap},
   \code{ninepixel.nonoverlap} and \code{sixteenpixel.nonoverlap} are
   intended to be passed to \code{generate_t_cache} in the argument
-  \code{f}.  They are used to calculate \eqn{t(ca_{idx} \cup X \textbackslash
+  \code{f}.  They are used to calculate \eqn{t(ca_{idx} \cup X \setminus
   A_a)}{\code{t( ca(idx) union X \\ A(a) )}} for the
   \eqn{\texttt{idx}^{th}}{idx-th} element of \eqn{C^{A_a}}{C^A(a)}.
 
